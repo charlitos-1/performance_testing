@@ -81,7 +81,7 @@ def function_performance(func):
         print()
         print(f"\tReturn Value: {return_value}")
         print()
-        print(f"\tPeak Memory Usage: {bytes_conversion(peak_memory_usage)}")
+        print(f"\Memory Usage: {bytes_conversion(peak_memory_usage)}")
         print(f"\tRuntime: {seconds_conversion(t_elapsed)}")
 
         return return_value
