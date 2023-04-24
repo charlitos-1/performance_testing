@@ -34,26 +34,6 @@ def seconds_conversion(seconds: float) -> str:
         return "%d:%02d:%02d" % (hours, minutes, seconds)
 
 
-def timeit(func):
-    """ Decorator function. Used to print out function name, arguments, return value, and elapsed time of a function. """
-
-    def timeit_wrapper(*args, **kwargs):
-        t_start = time.perf_counter()
-        return_value = func(*args, **kwargs)
-        t_elapsed = time.perf_counter() - t_start
-
-        print()
-        print(f"Function: {func.__name__}")
-        print(f"\tPositional Arguments: {args}")
-        print(f"\tKey Word Arguments: {kwargs}")
-        print(f"\tReturn Value: {return_value}")
-        print(f"\tRuntime: {seconds_conversion(t_elapsed)}")
-
-        return return_value
-
-    return timeit_wrapper
-
-
 def bytes_conversion(bytes):
     bytes_si_conversion = {
         0: "b",
@@ -70,27 +50,39 @@ def bytes_conversion(bytes):
     return f"{bytes} {bytes_si_conversion.get(thousands)}"
 
 
-def memory_usage(func):
-    """ Decorator function. Used to print out function name, and the peak memory usage during the function execution. """
+def function_performance(func):
+    """ Decorator function. Used to print out function runtime and peak memory usage during execution. """
 
     def memory_usage_wrapper(*args, **kwargs):
-        if not memory_usage.tracemalloc_running:
+        if not function_performance.tracemalloc_running:
             tracemalloc.start()
-            memory_usage.tracemalloc_running = True
+            function_performance.tracemalloc_running = True
 
         current_memory_usage, peak_memory_usage = tracemalloc.get_traced_memory()
-        memory_usage.memory_stack.append(current_memory_usage)
+        function_performance.memory_stack.append(current_memory_usage)
+        
+        t_start = time.perf_counter()
+
         return_value = func(*args, **kwargs)
-        current_memory_usage, peak_memory_usage = tracemalloc.get_traced_memory()
-        peak_memory_usage -= memory_usage.memory_stack.pop()
 
-        if not memory_usage.memory_stack:
+        t_elapsed = time.perf_counter() - t_start
+        
+        current_memory_usage, peak_memory_usage = tracemalloc.get_traced_memory()
+        peak_memory_usage -= function_performance.memory_stack.pop()
+
+        if not function_performance.memory_stack:
             tracemalloc.stop()
-            memory_usage.tracemalloc_running = False
+            function_performance.tracemalloc_running = False
 
         print()
         print(f"Function: {func.__name__}")
+        print(f"\tPositional Arguments: {args}")
+        print(f"\tKey Word Arguments: {kwargs}")
+        print()
+        print(f"\tReturn Value: {return_value}")
+        print()
         print(f"\tPeak Memory Usage: {bytes_conversion(peak_memory_usage)}")
+        print(f"\tRuntime: {seconds_conversion(t_elapsed)}")
 
         return return_value
 
@@ -98,9 +90,8 @@ def memory_usage(func):
 
 
 # static variables for memory_usage wrapper
-memory_usage.tracemalloc_running = False
-memory_usage.memory_stack = []
-
+function_performance.tracemalloc_running = False
+function_performance.memory_stack = []
 
 if __name__ == "__main__":
     pass
