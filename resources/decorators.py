@@ -54,9 +54,11 @@ def function_performance(func):
     """ Decorator function. Used to print out function runtime and peak memory usage during execution. """
 
     def memory_usage_wrapper(*args, **kwargs):
-        if not function_performance.tracemalloc_running:
+        function_performance.nested_functions_count += 1
+        tabs = function_performance.nested_functions_count * "\t"
+        
+        if not function_performance.memory_stack:
             tracemalloc.start()
-            function_performance.tracemalloc_running = True
 
         current_memory_usage, peak_memory_usage = tracemalloc.get_traced_memory()
         function_performance.memory_stack.append(current_memory_usage)
@@ -72,26 +74,27 @@ def function_performance(func):
 
         if not function_performance.memory_stack:
             tracemalloc.stop()
-            function_performance.tracemalloc_running = False
 
         print()
-        print(f"Function: {func.__name__}")
-        print(f"\tPositional Arguments: {args}")
-        print(f"\tKey Word Arguments: {kwargs}")
+        print(f"{tabs}Function: {func.__name__}")
+        print(f"{tabs}\tPositional Arguments: {args}")
+        print(f"{tabs}\tKey Word Arguments: {kwargs}")
         print()
-        print(f"\tReturn Value: {return_value}")
+        print(f"{tabs}\tReturn Value: {return_value}")
         print()
-        print(f"\Memory Usage: {bytes_conversion(peak_memory_usage)}")
-        print(f"\tRuntime: {seconds_conversion(t_elapsed)}")
+        print(f"{tabs}\tMemory Usage: {bytes_conversion(peak_memory_usage)}")
+        print(f"{tabs}\tRuntime: {seconds_conversion(t_elapsed)}")
 
+        function_performance.nested_functions_count -= 1
+        
         return return_value
 
     return memory_usage_wrapper
 
 
 # static variables for memory_usage wrapper
-function_performance.tracemalloc_running = False
 function_performance.memory_stack = []
+function_performance.nested_functions_count = -1
 
 if __name__ == "__main__":
     pass
