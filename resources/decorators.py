@@ -56,19 +56,19 @@ def function_performance(func):
     def memory_usage_wrapper(*args, **kwargs):
         function_performance.nested_functions_count += 1
         tabs = function_performance.nested_functions_count * "\t"
-        
+
         if not function_performance.memory_stack:
             tracemalloc.start()
 
         current_memory_usage, peak_memory_usage = tracemalloc.get_traced_memory()
         function_performance.memory_stack.append(current_memory_usage)
-        
+
         t_start = time.perf_counter()
 
         return_value = func(*args, **kwargs)
 
         t_elapsed = time.perf_counter() - t_start
-        
+
         current_memory_usage, peak_memory_usage = tracemalloc.get_traced_memory()
         peak_memory_usage -= function_performance.memory_stack.pop()
 
@@ -86,7 +86,7 @@ def function_performance(func):
         print(f"{tabs}\tRuntime: {seconds_conversion(t_elapsed)}")
 
         function_performance.nested_functions_count -= 1
-        
+
         return return_value
 
     return memory_usage_wrapper
