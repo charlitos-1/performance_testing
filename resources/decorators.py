@@ -1,4 +1,5 @@
 import time
+import tracemalloc
 
 
 def seconds_conversion(seconds: float) -> str:
@@ -11,7 +12,7 @@ def seconds_conversion(seconds: float) -> str:
 
     if seconds <= 1:
         seconds_si_conversion = {
-            0: "",
+            0: "seconds",
             1: "miliseconds",
             2: "microseconds",
             3: "nanoseconds",
@@ -36,7 +37,7 @@ def seconds_conversion(seconds: float) -> str:
 def timeit(func):
     """ Decorator function. Used to print out function name, arguments, return value, and elapsed time of a function. """
 
-    def wrapper(*args, **kwargs):
+    def timeit_wrapper(*args, **kwargs):
         t_start = time.perf_counter()
         return_value = func(*args, **kwargs)
         t_elapsed = time.perf_counter() - t_start
@@ -45,12 +46,60 @@ def timeit(func):
         print(f"Function: {func.__name__}")
         print(f"\tPositional Arguments: {args}")
         print(f"\tKey Word Arguments: {kwargs}")
-        print(f"\tReturn value: {return_value}")
+        print(f"\tReturn Value: {return_value}")
         print(f"\tRuntime: {seconds_conversion(t_elapsed)}")
 
         return return_value
 
-    return wrapper
+    return timeit_wrapper
+
+
+def bytes_conversion(bytes):
+    bytes_si_conversion = {
+        0: "b",
+        1: "kb",
+        2: "mb",
+        3: "gb",
+        4: "tb",
+    }
+    thousands = 0
+    while bytes > 1000 and thousands < max(bytes_si_conversion.keys()):
+        bytes /= 1000
+        thousands += 1
+    bytes = round(bytes, 3)
+    return f"{bytes} {bytes_si_conversion.get(thousands)}"
+
+
+def memory_usage(func):
+    """ Decorator function. Used to print out function name, and the peak memory usage during the function execution. """
+
+    def memory_usage_wrapper(*args, **kwargs):
+        if not memory_usage.tracemalloc_running:
+            tracemalloc.start()
+            memory_usage.tracemalloc_running = True
+
+        current_memory_usage, peak_memory_usage = tracemalloc.get_traced_memory()
+        memory_usage.memory_stack.append(current_memory_usage)
+        return_value = func(*args, **kwargs)
+        current_memory_usage, peak_memory_usage = tracemalloc.get_traced_memory()
+        peak_memory_usage -= memory_usage.memory_stack.pop()
+
+        if not memory_usage.memory_stack:
+            tracemalloc.stop()
+            memory_usage.tracemalloc_running = False
+
+        print()
+        print(f"Function: {func.__name__}")
+        print(f"\tPeak Memory Usage: {bytes_conversion(peak_memory_usage)}")
+
+        return return_value
+
+    return memory_usage_wrapper
+
+
+# static variables for memory_usage wrapper
+memory_usage.tracemalloc_running = False
+memory_usage.memory_stack = []
 
 
 if __name__ == "__main__":
