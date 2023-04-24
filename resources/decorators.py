@@ -33,7 +33,7 @@ def seconds_conversion(seconds: float) -> str:
         return "%d:%02d:%02d" % (hours, minutes, seconds)
 
 
-def func_info(func):
+def timeit(func):
     """ Decorator function. Used to print out function name, arguments, return value, and elapsed time of a function. """
 
     def wrapper(*args, **kwargs):
@@ -42,7 +42,7 @@ def func_info(func):
         t_elapsed = time.perf_counter() - t_start
 
         print()
-        print(f"Function: {func}")
+        print(f"Function: {func.__name__}")
         print(f"\tPositional Arguments: {args}")
         print(f"\tKey Word Arguments: {kwargs}")
         print(f"\tReturn value: {return_value}")
